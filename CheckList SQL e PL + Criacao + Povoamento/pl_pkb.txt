@@ -1,0 +1,30 @@
+-- 74 Não deixa deletar nenhum curso, sem condições
+CREATE OR REPLACE TRIGGER delete_curso
+BEFORE DELETE ON CURSO
+FOR EACH ROW
+BEGIN
+RAISE_APPLICATION_ERROR(-20011, 'Nenhum curso pode ser deletado');
+END;
+/
+-- Teste 74
+DELETE FROM CURSO
+WHERE CODIGO = 1;
+------------------------------------------------------------------
+-- 85 Se o professor for excluido, seus projetos tambem serao
+CREATE OR REPLACE TRIGGER delete_prof
+AFTER DELETE ON professor 
+FOR EACH ROW
+BEGIN
+    IF(:OLD.cpf IS NOT NULL) THEN
+        DELETE FROM projeto WHERE projeto.cpf_prof = :OLD.cpf;
+    END IF;
+END;    
+/
+------------------------------------------------------------------
+-- Consulta que usa uma funçaõ ja existente
+-- 86
+SELECT Nome, nota_mec
+FROM Curso 
+WHERE nota_mec > (SELECT UNIQUE media_cursos FROM Curso)
+ORDER BY nota_mec DESC;
+------------------------------------------------------------------

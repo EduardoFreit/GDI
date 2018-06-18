@@ -1,0 +1,497 @@
+
+    CODIGO NOME                             NOTA_MEC
+---------- ------------------------------ ----------
+         2 Letras                         8,5       
+         6 Arquitetura                    8,24      
+         4 Ciência Política               7,6       
+
+
+CPF_PROFESSOR DATA_NAS NOME                          
+------------- -------- ------------------------------
+           33 19/12/72 PSGMN                         
+           55 14/07/78 Américo                       
+
+
+NOME                          
+------------------------------
+Física I
+Física II
+Física III
+
+
+NOME                          
+------------------------------
+Vitor
+Maria
+Sammy
+
+
+NOME                          
+------------------------------
+Vitor
+
+
+View P_NOMEEMAIL criado.
+
+
+NOME                          
+------------------------------
+Castor
+
+
+View P_NOMEEMAIL eliminado.
+
+
+Table ALUNO alterado.
+
+
+Table ALUNO alterado.
+
+
+Table ALUNO alterado.
+
+
+NOME                           MEDIA_GERAL
+------------------------------ -----------
+Lucas                          8,5        
+Vitor                          9,75       
+Karol                                    4
+
+
+TITULO                                                                                               DIFF_FROM_AVG
+---------------------------------------------------------------------------------------------------- -------------
+LMS                                                                                                          95000
+OTI                                                                                                         -90000
+GIT                                                                                                          -5000
+
+
+NOME                          
+------------------------------
+Lucas
+Vitor
+Karol
+
+
+0 linhas excluído.
+
+
+  MAIOR_CR
+----------
+9,75      
+
+Erro a partir da linha : 70 no comando -
+DECLARE
+    qnt_curso NUMBER;
+    CURSOR c_curso IS (SELECT * FROM curso);
+    v_curso c_curso%ROWTYPE;
+BEGIN
+    SELECT COUNT(*) INTO qnt_curso FROM curso;
+    dbms_output.put_line('A quantidade de cursos é : ' || qnt_curso);
+
+    OPEN c_curso;
+    LOOP
+        FETCH c_curso INTO v_curso;
+        EXIT WHEN c_curso%NOTFOUND;
+
+        IF (v_curso.nota_mec < 7) THEN
+            dbms_output.put_line('O curso : ' || v_curso.nome || 'tem nota do mec inferior a 7');
+        ELSIF (v_curso.nota_mec > 7 AND v_curso.nota_mec < 9) THEN
+            dbms_output.put_line('O curso : ' || v_curso.nome || 'tem nota do mec entre 7 e 9');
+        ELSE
+            dbms_output.put_line('O curso : ' || v_curso.nome || 'tem nota do mec superior a 9');
+        END IF;
+    END LOOP;
+END;
+
+
+-- 52, 54, 59
+-- retorna uma mensagem dizendo se o código da disciplina é IMPAR OU PAR
+DECLARE 
+    CURSOR c_disc IS (SELECT * FROM disciplina);
+    v_codigo NUMBER;
+    v_qnt_alunos NUMBER;
+    v_cpf NUMBER;
+    v_nome VARCHAR2(20);
+    a NUMBER := 1;
+    b NUMBER;
+    qnt NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO qnt FROM disciplina;
+    OPEN c_disc;
+    WHILE a <= qnt LOOP
+        FETCH c_disc INTO v_codigo, v_qnt_alunos, v_cpf, v_nome;
+        b := MOD (v_codigo,2);
+        CASE b
+            WHEN 0 THEN
+                dbms_output.put_line('A disciplina : ' || v_nome || 'tem codigo de curso PAR');
+            WHEN 1 THEN
+                dbms_output.put_line('A disciplina : ' || v_nome || 'tem codigo de curso IMPAR');
+        END CASE;
+        a := a + 1;
+    END LOOP;
+END;
+
+
+-- retorna o códiga e a capacidade das salas localizadas no CCEN
+-- 61
+DECLARE
+    CURSOR c_sala (v_centro VARCHAR2) IS (SELECT codigo, capacidade FROM sala WHERE centro = v_centro);
+    v_sala c_sala%ROWTYPE;
+BEGIN
+    OPEN c_sala('CCEN');
+    LOOP
+        FETCH c_sala INTO v_sala;
+        EXIT WHEN c_sala%NOTFOUND;
+        dbms_output.put_line('A sala de codigo ' || v_sala.codigo || ' e capacidade '|| v_sala.capacidade ||  ' está localizada no CCEN');
+    END LOOP;
+END;
+
+
+-- retorna o códiga e a capacidade das salas localizadas no CCEN (igual ao de cima mas de um jeito bem mais simples)
+-- 55, 62
+BEGIN
+    FOR v_sala IN (SELECT * FROM sala) LOOP
+        IF v_sala.centro = 'CCEN' THEN
+            dbms_output.put_line('A sala de codigo ' || v_sala.codigo || ' e capacidade '|| v_sala.capacidade ||  ' está localizada no CCEN');
+        END IF;
+    END LOOP;
+END;
+
+
+-- Insere uma nova iniciação científica
+-- 64
+CREATE OR REPLACE PROCEDURE insereIC(
+v_codigo ic.codigo%TYPE,
+v_data_inic ic.data_inic%TYPE,
+v_tema ic.tema%TYPE,
+v_cpf_aluno ic.cpf_aluno%TYPE) AS
+
+BEGIN
+    INSERT INTO ic VALUES (v_codigo, v_data_inic, v_tema, v_cpf_aluno);
+    COMMIT;
+END insereIC;
+
+-- Teste do procedimento anterior
+BEGIN
+    insereIC(4,'30/11/15','IoT',2222);
+END;
+
+
+-- pega o código do curso de um aluno com determinado CPF
+--  49, 65
+CREATE OR REPLACE PROCEDURE codigo_aluno(
+v_cpf_aluno IN OUT aluno.cpf_aluno%TYPE,
+v_codigo_curso OUT aluno.codigo_curso%TYPE) AS
+
+BEGIN
+    SELECT codigo_curso INTO v_codigo_curso FROM aluno WHERE cpf_aluno = v_cpf_aluno;
+    COMMIT;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        v_codigo_curso := -1;
+        dbms_output.put_line('Não existe aluno com o CPF especificado');
+
+END codigo_aluno;
+
+
+-- Bloco que chama PROCUDERE (que pega o código do curso de um aluno com determinado CPF) e printa o código
+--  49, 65
+DECLARE
+    v_cpf aluno.cpf_aluno%TYPE := '5555';
+    v_codigo aluno.codigo_curso%TYPE;
+BEGIN
+    codigo_aluno (v_cpf, v_codigo);
+    IF v_codigo != -1 THEN
+        dbms_output.put_line('O codigo do curso do aluno com cpf ' || v_cpf || ' é ' || v_codigo);
+    END IF;
+END;
+
+
+-- procedimento que diz a quantidade de alunos em cada disciplina
+-- 63 
+CREATE OR REPLACE PROCEDURE qnt_aluno_disc AS
+BEGIN
+    FOR v_reg IN (SELECT nome, qnt_alunos FROM disciplina ) LOOP
+        IF (v_reg.qnt_alunos IS NULL) THEN
+            dbms_output.put_line('A disciplina ' || v_reg.nome || ' não tem alunos');
+        ELSE
+            dbms_output.put_line('A disciplina ' || v_reg.nome || ' tem ' || v_reg.qnt_alunos || ' alunos');
+        END IF;
+    END LOOP;
+    COMMIT;
+END qnt_aluno_disc;
+
+-- Teste do procedimento anterior
+BEGIN
+    qnt_aluno_disc();
+END;
+
+
+-- Função que retorna a médoa das notas do mec dos cursos
+-- 67
+CREATE OR REPLACE FUNCTION media_cursos RETURN NUMBER IS
+media NUMBER(3,2);
+BEGIN
+    SELECT AVG(nota_mec) INTO media FROM curso;
+    RETURN media;
+END media_cursos;
+
+-- Teste para a função anterior
+DECLARE
+    media NUMBER (3,2);
+BEGIN
+    media := media_cursos;
+    dbms_output.put_line('A média das notas do mec de todos os cursos é : ' || media);
+END;
+
+
+
+-- -- Função que retorna as salas de um determinado centro quem tem a capacidade maior que X
+-- 68, 69, 70
+
+CREATE OR REPLACE FUNCTION dados_aluno(v_data_nasc OUT aluno.data_nasc%TYPE,
+                                        v_cpf_aluno IN OUT aluno.cpf_aluno%TYPE,
+                                        v_cpf_padrinho OUT aluno.cpf_padrinho%TYPE,
+                                        v_nome OUT aluno.nome%TYPE,
+                                        v_cep OUT aluno.cep%TYPE) RETURN ic.tema%TYPE IS
+
+v_tema_ic ic.tema%TYPE;
+
+BEGIN
+    SELECT data_nasc, cpf_padrinho, nome, cep 
+    INTO v_data_nasc, v_cpf_padrinho, v_nome, v_cep 
+    FROM aluno 
+    WHERE cpf_aluno = v_cpf_aluno;
+
+    SELECT tema 
+    INTO v_tema_ic 
+    FROM ic 
+    WHERE cpf_aluno = v_cpf_aluno;
+
+    RETURN v_tema_ic;
+END dados_aluno;
+
+-- Teste para função anterior com chamada
+DECLARE 
+    v_tema_ic ic.tema%TYPE;
+    v_cep aluno.cep%TYPE;
+    v_nome aluno.nome%TYPE;
+    v_cpf_padrinho aluno.cpf_padrinho%TYPE;
+    v_cpf_aluno aluno.cpf_aluno%TYPE := '2222';
+    v_data_nasc aluno.data_nasc%TYPE;
+    v_cod_curso aluno.codigo_curso%TYPE;
+
+BEGIN
+    v_tema_ic := dados_aluno(v_data_nasc, v_cpf_aluno, v_cpf_padrinho, v_nome, v_cep);
+    codigo_aluno(v_cpf_aluno, v_cod_curso);
+
+    dbms_output.put_line('Nome : ' || v_nome);
+    dbms_output.put_line('Data de nascimento : ' || v_data_nasc);
+    dbms_output.put_line('Cpf do padrinho : ' || v_cpf_padrinho);
+    dbms_output.put_line('Código do curso : ' || v_cod_curso);
+    dbms_output.put_line('Tema da iniciação científica : ' || v_tema_ic);
+    dbms_output.put_line('Cep : ' || v_cep);
+END;
+
+
+
+-- Pacotes
+-- 71 e 89
+/* O pacote recebe o cpf de um jogador e imprime seu nome. */
+
+CREATE OR REPLACE PACKAGE nomeAlunoX AS
+    FUNCTION nomeAluno (v_cpf aluno.cpf_aluno%TYPE) RETURN aluno.nome%TYPE;
+    PROCEDURE getNomeAluno (v_cpf IN aluno.cpf_aluno%TYPE);
+END nomeAlunoX;
+Relatório de erros -
+ORA-06550: linha 27, coluna 1:
+PLS-00103: Encontrado o símbolo "DECLARE" 
+ORA-06550: linha 81, coluna 1:
+PLS-00103: Encontrado o símbolo "CREATE" quando um dos seguintes símbolos era esperado:
+
+   ( começar case declare end exception sair for goto if loop
+   mod nulo pragma raise retornar selecionar atualizar while com
+   <um identificado
+06550. 00000 -  "line %s, column %s:\n%s"
+*Cause:    Usually a PL/SQL compilation error.
+*Action:
+
+Package Body NOMEALUNOX compilado
+
+Erros: verifique o log do compilador
+Erro a partir da linha : 327 no comando -
+DELETE FROM CURSO
+WHERE CODIGO = 1
+Relatório de erros -
+ORA-02292: restrição de integridade (MONITORIA_UNI.BACHARELADO_FK) violada - registro filho localizado
+
+
+Trigger DELETE_PROF compilado
+
+Erros: verifique o log do compilador
+
+Erro a partir da linha : 344 no comando -
+SELECT Nome, nota_mec
+FROM Curso 
+WHERE nota_mec > (SELECT UNIQUE media_cursos FROM Curso)
+ORDER BY nota_mec DESC
+Erro na Linha de Comandos : 346 Coluna : 33
+Relatório de erros -
+Erro de SQL: ORA-00904: "MEDIA_CURSOS": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 354 no comando -
+SELECT P.nome, D.nome, D.qnt_alunos, E.e_mail AS bbb FROM professor P
+FULL OUTER JOIN disciplina D ON P.cpf = D.cpf_professor
+FULL OUTER JOIN email E ON D.cpf_professor = E.cpf_professor
+WHERE D.qnt_alunos BETWEEN (SELECT AVG(qnt_alunos) FROM disciplina) AND (SELECT MAX(qnt_alunos) FROM disciplina)
+ORDER BY P.nome, D.nome
+Erro na Linha de Comandos : 355 Coluna : 33
+Relatório de erros -
+Erro de SQL: ORA-00904: "P"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 362 no comando -
+SELECT e_mail FROM email
+WHERE EXISTS ( SELECT * FROM professor P, email E WHERE E.cpf_professor = P.cpf)
+Erro na Linha de Comandos : 362 Coluna : 8
+Relatório de erros -
+Erro de SQL: ORA-00904: "E_MAIL": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 368 no comando -
+SELECT COUNT(D.codigo), SUM(D.qnt_alunos), D.cpf_professor, P.nome FROM disciplina D, professor P
+WHERE P.cpf = D.cpf_professor
+GROUP BY D.cpf_professor,P.nome
+HAVING SUM(D.qnt_alunos) > (SELECT AVG(qnt_alunos) FROM disciplina)
+Erro na Linha de Comandos : 369 Coluna : 7
+Relatório de erros -
+Erro de SQL: ORA-00904: "P"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 375 no comando -
+SELECT AU.codigo, A.nome AS NOME_ALUNO, A.cpf AS CPF_ALUNO, P.nome AS NOME_PROF, P.cpf AS CPF_PROF, AU.horario FROM aluno A, professor P, aula AU
+WHERE A.cpf = AU.cpf_aluno
+AND P.cpf = AU.cpf_prof
+Erro na Linha de Comandos : 377 Coluna : 13
+Relatório de erros -
+Erro de SQL: ORA-00904: "AU"."CPF_PROF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 381 no comando -
+SELECT P.nome, P.CPF AS CPF_PROFESSOR FROM professor P
+INNER JOIN email E ON P.cpf = E.cpf_professor
+Erro na Linha de Comandos : 382 Coluna : 23
+Relatório de erros -
+Erro de SQL: ORA-00904: "P"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 386 no comando -
+SELECT A.nome, A.cpf AS CPF_ALUNO FROM aluno A
+LEFT OUTER JOIN iniciacao I ON A.cpf = I.cpf_aluno
+WHERE I.cpf_aluno IS NULL
+Erro na Linha de Comandos : 387 Coluna : 17
+Relatório de erros -
+Erro de SQL: ORA-00942: a tabela ou view não existe
+00942. 00000 -  "table or view does not exist"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 392 no comando -
+SELECT P.nome, P.cpf AS CPF_PROF, PP.descricao FROM professor P
+RIGHT OUTER JOIN projeto PP ON P.cpf = PP.cpf_prof
+Erro na Linha de Comandos : 393 Coluna : 40
+Relatório de erros -
+Erro de SQL: ORA-00904: "PP"."CPF_PROF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 397 no comando -
+SELECT A.cpf, E.descricao, E.cep FROM aluno A
+FULL OUTER JOIN endereco E ON e.cep = A.cep
+Erro na Linha de Comandos : 397 Coluna : 8
+Relatório de erros -
+Erro de SQL: ORA-00904: "A"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 402 no comando -
+SELECT A.nome, A.cpf, C.media FROM aluno A, cursa C
+WHERE C.media > SOME (SELECT media FROM cursa WHERE codigo_disc = 0)
+AND A.cpf = C.cpf_aluno
+Erro na Linha de Comandos : 404 Coluna : 5
+Relatório de erros -
+Erro de SQL: ORA-00904: "A"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 408 no comando -
+SELECT A.nome, A.cpf, C.media, A.dt_nasc FROM aluno A, cursa C
+WHERE C.media > ALL(SELECT C.media FROM aluno A,cursa C WHERE A.dt_nasc < TO_DATE('01-01-1990', 'DD-MM-YYYY') AND A.cpf = C.cpf_aluno)
+AND A.cpf = C.cpf_aluno
+Erro na Linha de Comandos : 410 Coluna : 5
+Relatório de erros -
+Erro de SQL: ORA-00904: "A"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+nenhuma linha selecionada
+
+Erro a partir da linha : 419 no comando -
+SELECT A.nome, A.cpf, AU.horario, 'Aluno' AS alun_prof FROM aluno A,aula AU WHERE A.cpf = AU.cpf_aluno
+UNION
+SELECT P.nome, P.cpf, AU.horario, 'Professor' FROM professor P,aula AU WHERE P.cpf = AU.cpf_prof
+ORDER BY alun_prof DESC, horario ASC
+Erro na Linha de Comandos : 419 Coluna : 83
+Relatório de erros -
+Erro de SQL: ORA-00904: "A"."CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 426 no comando -
+SELECT cpf AS CPF_PROF FROM professor
+INTERSECT
+SELECT cpf_professor FROM email
+Erro na Linha de Comandos : 426 Coluna : 8
+Relatório de erros -
+Erro de SQL: ORA-00904: "CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+
+Erro a partir da linha : 432 no comando -
+SELECT cpf AS CPF_PROF FROM professor
+MINUS
+SELECT cpf_professor FROM email
+Erro na Linha de Comandos : 432 Coluna : 8
+Relatório de erros -
+Erro de SQL: ORA-00904: "CPF": identificador inválido
+00904. 00000 -  "%s: invalid identifier"
+*Cause:    
+*Action:
+Erro a partir da linha : 438 no comando -
+INSERT INTO curso (codigo, nome, nota_mec)
+SELECT MAX (C.codigo) + 1, 'Arte da Guerra', 90 FROM curso C
+Relatório de erros -
+ORA-02290: restrição de verificação (MONITORIA_UNI.CURSO_CK) violada
+
+
+0 linhas atualizado.
+
