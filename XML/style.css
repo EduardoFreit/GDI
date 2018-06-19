@@ -1,0 +1,30 @@
+SALAS { display: table; }
+SALAS { border: solid 3px; }
+
+SALA { display: block; }
+SALA { border-top: 1px solid #ddd; }
+SALA:hover {background-color: #f5f5f5;}
+
+
+CENTRO,CENTRO1 { display: inline-block; }
+CENTRO { border-left: 1.5px solid #ddd; }
+CODIGO,CODIGO1 { display: inline-block; }
+
+CODIGO1, CENTRO1 {
+    background-color: #4CAF50;
+    color: white;
+}
+
+SALAS{
+    width: 50%;
+}
+
+CODIGO, CENTRO{
+    text-align: center;
+    width: 49.2%;
+}
+
+CODIGO1,CENTRO1{
+    text-align: center;
+    width: 49.6%;
+}

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="style.css"?>
+<SALAS>
+ <SALA>
+  <CODIGO1>CODIGO</CODIGO1>
+  <CENTRO1>CENTRO</CENTRO1>
+ </SALA>
+ <SALA>
+  <CODIGO>2</CODIGO>
+  <CENTRO>CCEN</CENTRO>
+ </SALA>
+ <SALA>
+  <CODIGO>3</CODIGO>
+  <CENTRO>CCEN</CENTRO>
+ </SALA>
+ <SALA>
+  <CODIGO>4</CODIGO>
+  <CENTRO>CCEN</CENTRO>
+ </SALA>
+ <SALA>
+  <CODIGO>5</CODIGO>
+  <CENTRO>CCEN</CENTRO>
+ </SALA>
+ <SALA>
+  <CODIGO>13</CODIGO>
+  <CENTRO>Area2</CENTRO>
+ </SALA>
+ <SALA>
+  <CODIGO>15</CODIGO>
+  <CENTRO>Area2</CENTRO>
+ </SALA>
+ <SALA>
+  <CODIGO>112</CODIGO>
+  <CENTRO>CIN</CENTRO>
+ </SALA>
+</SALAS>
